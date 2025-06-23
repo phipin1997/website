@@ -19,10 +19,13 @@ $nisnList = $conn->query("SELECT nisn, nama_lengkap FROM calon_siswa_mediatek OR
             margin: 0;
             background: #f1f5f9;
             display: flex;
+            height: 100vh;
+            overflow: hidden;
         }
 
         .container {
             flex: 1;
+            overflow-y: auto;
             padding: 40px;
             box-sizing: border-box;
         }
@@ -36,19 +39,20 @@ $nisnList = $conn->query("SELECT nisn, nama_lengkap FROM calon_siswa_mediatek OR
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
         }
 
-        h2, h3 {
+        h2 {
             text-align: center;
             color: #333;
+            margin-bottom: 25px;
         }
 
         form label {
             display: block;
             margin-top: 15px;
+            font-weight: bold;
         }
 
         input[type="file"], select {
             margin-top: 5px;
-            margin-bottom: 15px;
             width: 100%;
             padding: 10px;
             border-radius: 6px;
@@ -56,13 +60,15 @@ $nisnList = $conn->query("SELECT nisn, nama_lengkap FROM calon_siswa_mediatek OR
         }
 
         .btn-upload {
-            padding: 10px 20px;
+            padding: 12px;
+            width: 100%;
             background-color: #0077cc;
             color: white;
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 20px;
+            font-size: 16px;
         }
 
         .btn-upload:hover {
@@ -72,12 +78,12 @@ $nisnList = $conn->query("SELECT nisn, nama_lengkap FROM calon_siswa_mediatek OR
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 25px;
+            margin-top: 30px;
         }
 
         th, td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 10px;
             font-size: 14px;
             text-align: center;
         }
@@ -89,6 +95,7 @@ $nisnList = $conn->query("SELECT nisn, nama_lengkap FROM calon_siswa_mediatek OR
 
         #status {
             margin-top: 15px;
+            font-size: 14px;
         }
     </style>
 </head>
@@ -100,7 +107,7 @@ $nisnList = $conn->query("SELECT nisn, nama_lengkap FROM calon_siswa_mediatek OR
             <h2>Upload Berkas Calon Siswa</h2>
 
             <form id="formUpload" enctype="multipart/form-data">
-                <label>Pilih NISN:</label>
+                <label for="nisn">Pilih NISN:</label>
                 <select name="nisn" required>
                     <option value="">-- Pilih NISN --</option>
                     <?php while($row = $nisnList->fetch_assoc()): ?>
@@ -110,7 +117,7 @@ $nisnList = $conn->query("SELECT nisn, nama_lengkap FROM calon_siswa_mediatek OR
                     <?php endwhile; ?>
                 </select>
 
-                <label>Jenis Berkas:</label>
+                <label for="jenis_berkas">Jenis Berkas:</label>
                 <select name="jenis_berkas" required>
                     <option value="">-- Pilih --</option>
                     <option value="Kartu Keluarga">Kartu Keluarga</option>
@@ -119,7 +126,7 @@ $nisnList = $conn->query("SELECT nisn, nama_lengkap FROM calon_siswa_mediatek OR
                     <option value="Akte Kelahiran">Akte Kelahiran</option>
                 </select>
 
-                <label>Pilih File:</label>
+                <label for="berkas">Pilih File:</label>
                 <input type="file" name="berkas" required>
 
                 <button class="btn-upload" type="submit">Upload</button>
@@ -127,15 +134,17 @@ $nisnList = $conn->query("SELECT nisn, nama_lengkap FROM calon_siswa_mediatek OR
 
             <div id="status"></div>
 
-            <h3>Daftar Berkas Terupload</h3>
             <div id="tabelBerkas"></div>
         </div>
     </div>
 
     <script>
-        document.getElementById("formUpload").addEventListener("submit", function(e) {
+        const formUpload = document.getElementById("formUpload");
+        const statusBox = document.getElementById("status");
+
+        formUpload.addEventListener("submit", function(e) {
             e.preventDefault();
-            const formData = new FormData(this);
+            const formData = new FormData(formUpload);
 
             fetch("upload_berkas_action.php", {
                 method: "POST",
@@ -143,12 +152,18 @@ $nisnList = $conn->query("SELECT nisn, nama_lengkap FROM calon_siswa_mediatek OR
             })
             .then(res => res.text())
             .then(data => {
-                document.getElementById("status").innerHTML = "<div style='color: green;'>✅ " + data + "</div>";
-                this.reset();
+                statusBox.innerHTML = `
+                    <div style="padding:15px; background:#d1fae5; border-left:5px solid #10b981; border-radius:8px; font-size:15px;">
+                        ✅ ${data}
+                    </div>`;
+                formUpload.reset();
                 loadTabel();
             })
             .catch(() => {
-                document.getElementById("status").innerHTML = "<div style='color: red;'>❌ Gagal upload.</div>";
+                statusBox.innerHTML = `
+                    <div style="padding:15px; background:#fee2e2; border-left:5px solid #dc2626; border-radius:8px; font-size:15px;">
+                        ❌ Gagal upload. Silakan coba lagi.
+                    </div>`;
             });
         });
 
